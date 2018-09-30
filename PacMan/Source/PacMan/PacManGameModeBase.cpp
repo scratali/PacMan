@@ -3,5 +3,15 @@
 #include "PacManGameModeBase.h"
 
 
+EGameState APacManGameModeBase::GetCurrentState() const
+{
+	return CurrentState;
+}
+
+void APacManGameModeBase::SetCurrentState(EGameState GameState)
+{
+	CurrentState = GameState;
+}
+
 
 

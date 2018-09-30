@@ -29,10 +29,10 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = Collectible)
 	USphereComponent* BaseCollisionComponent;
 
-	UPROPERTY(EditDefaultsOnly, Category = Collectible)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Collectible)
 	UStaticMeshComponent* CollectibleMesh;
 
-	UPROPERTY(EditAnywhere, Category = Collectible)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Collectible)
 	bool bIsSuperCollectible;
 	
 };

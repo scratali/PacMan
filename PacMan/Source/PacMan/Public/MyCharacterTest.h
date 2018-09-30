@@ -4,19 +4,16 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include "PacManGameModeBase.h"
-#include "PacManCharacter.generated.h"
-
-
+#include "MyCharacterTest.generated.h"
 
 UCLASS()
-class PACMAN_API APacManCharacter : public ACharacter
+class PACMAN_API AMyCharacterTest : public ACharacter
 {
 	GENERATED_BODY()
 
 public:
 	// Sets default values for this character's properties
-	APacManCharacter();
+	AMyCharacterTest();
 
 protected:
 	// Called when the game starts or when spawned
@@ -30,19 +27,5 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	
-	void MoveXAxis(float AxisValue);
-	void MoveYAxis(float AxisValue);
-	void MyNewGame();
-	void MyPause();
-	void MyRestart();
 	
-
-
-private:
-	UFUNCTION()
-	void MyOnCollision(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
-		const FHitResult &SweepResult);
-
-	FVector CurrentVelocity;
-	APacManGameModeBase* GameMode;
 };
