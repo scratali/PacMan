@@ -2,7 +2,6 @@
 
 #include "AIEnemy.h"
 #include <TimerManager.h>
-//#include <AI/NavigationSystemBase.h>
 #include <NavigationSystem.h>
 
 
@@ -35,7 +34,6 @@ void AAIEnemy::OnMoveCompleted(FAIRequestID RequestID, const FPathFollowingResul
 //     when found, we simply call the GetRandomPointInRadius function from the NavMesh
 void AAIEnemy::SearchNewPoint()
 {
-	//UNavigationSystem* NavMesh = UNavigationSystem::GetCurrent(this);
 	UNavigationSystemV1* NavMesh = UNavigationSystemV1::GetCurrent(this);
 	if (NavMesh) {
 		const float fSearchRadius = 10000.0f;

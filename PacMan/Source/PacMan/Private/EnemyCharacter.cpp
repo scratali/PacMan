@@ -48,7 +48,7 @@ void AEnemyCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	DefaultMaterial = EnemyBody->GetMaterial(0);
+	//DefaultMaterial = EnemyBody->GetMaterial(0);
 
 	GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &AEnemyCharacter::MyOnCollision);
 }

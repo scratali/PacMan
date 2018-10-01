@@ -19,22 +19,22 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-public:	
+public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	
-	UPROPERTY(EditAnywhere, Category = Body)
-	UStaticMeshComponent* EnemyBody;
 
 	UPROPERTY(EditAnywhere, Category = Body)
-	UMaterialInterface* DefaultMaterial;
+		UStaticMeshComponent* EnemyBody;
 
 	UPROPERTY(EditAnywhere, Category = Body)
-	UMaterialInterface* VulnerableMaterial;
+		UMaterialInterface* DefaultMaterial;
+
+	UPROPERTY(EditAnywhere, Category = Body)
+		UMaterialInterface* VulnerableMaterial;
 
 
 	// When player eat a super collectible, set all the enemies vulnerable for a certain period of time
@@ -49,13 +49,13 @@ public:
 	// Enemy re-arm; set invulnerable and restore its original speed
 	void Rearm();
 
-	bool bIsDead;
+	bool bIsDead = false;
 
 private:
 	UFUNCTION()
-		void MyOnCollision(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
-			const FHitResult &SweepResult);
+	void MyOnCollision(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
+		const FHitResult &SweepResult);
 
-	bool bIsVulnerable;
+	bool bIsVulnerable = false;
 	FTimerHandle TimerVulnerable;
 };
