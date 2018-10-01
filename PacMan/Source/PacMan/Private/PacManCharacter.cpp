@@ -4,6 +4,7 @@
 #include <Kismet/GameplayStatics.h>
 #include <Components/CapsuleComponent.h>
 #include "Collectible.h"
+#include <EngineUtils.h>
 
 
 // Sets default values
@@ -24,6 +25,15 @@ void APacManCharacter::BeginPlay()
 	GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &APacManCharacter::MyOnCollision);
 
 	GameMode->SetCurrentState(EGameState::EPlaying);
+
+	StartPoint = GetActorLocation();
+
+	// find all the collectibles in the world
+	for (TActorIterator<ACollectible> CollectibleItr(GetWorld()); CollectibleItr; ++CollectibleItr) {
+		CollectiblesToEat++;
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("Collectibles to eat: %d - Lives: %d"), CollectiblesToEat, Lives);
 }
 
 // Called every frame
@@ -40,9 +50,9 @@ void APacManCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 	PlayerInputComponent->BindAxis("MoveX", this, &APacManCharacter::MoveXAxis);
 	PlayerInputComponent->BindAxis("MoveY", this, &APacManCharacter::MoveYAxis);
-	PlayerInputComponent->BindAction("NewGame", IE_Pressed, this, &APacManCharacter::MyNewGame);
-	PlayerInputComponent->BindAction("Pause", IE_Pressed, this, &APacManCharacter::MyPause);
-//	PlayerInputComponent->BindAction("Restart", IE_Pressed, this, &APacManCharacter::MyRestart);
+	PlayerInputComponent->BindAction("NewGame", IE_Pressed, this, &APacManCharacter::NewGame);
+	PlayerInputComponent->BindAction("Pause", IE_Pressed, this, &APacManCharacter::PauseGame);
+	PlayerInputComponent->BindAction("Restart", IE_Pressed, this, &APacManCharacter::RestartGame);
 }
 
 void APacManCharacter::MoveXAxis(float AxisValue)
@@ -50,7 +60,6 @@ void APacManCharacter::MoveXAxis(float AxisValue)
 	CurrentVelocity.X = AxisValue;
 	AddMovementInput(CurrentVelocity);
 
-	UE_LOG(LogTemp, Warning, TEXT("C++ Move X: %.2f"), AxisValue);
 }
 
 void APacManCharacter::MoveYAxis(float AxisValue)
@@ -58,16 +67,15 @@ void APacManCharacter::MoveYAxis(float AxisValue)
 	CurrentVelocity.Y = AxisValue;
 	AddMovementInput(CurrentVelocity);
 
-	UE_LOG(LogTemp, Warning, TEXT("C++ Move Y: %.2f"), AxisValue);
 }
 
-void APacManCharacter::MyNewGame()
+void APacManCharacter::NewGame()
 {
 	if (GameMode->GetCurrentState() == EGameState::EMenu)
 		GameMode->SetCurrentState(EGameState::EPlaying);
 }
 
-void APacManCharacter::MyPause()
+void APacManCharacter::PauseGame()
 {
 	if (GameMode->GetCurrentState() == EGameState::EPlaying)
 		GameMode->SetCurrentState(EGameState::EPause);
@@ -75,9 +83,17 @@ void APacManCharacter::MyPause()
 		GameMode->SetCurrentState(EGameState::EPlaying);
 }
 
-void APacManCharacter::MyRestart()
+void APacManCharacter::RestartGame()
 {
 	GetWorld()->GetFirstPlayerController()->ConsoleCommand(TEXT("RestartLevel"));
+}
+
+void APacManCharacter::Kill()
+{
+	if (--Lives == 0)
+		GameMode->SetCurrentState(EGameState::EGameOver);
+	else
+		SetActorLocation(StartPoint);
 }
 
 void APacManCharacter::MyOnCollision(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
@@ -88,6 +104,8 @@ void APacManCharacter::MyOnCollision(UPrimitiveComponent* OverlappedComponent, A
 		if (OtherActor->IsA(ACollectible::StaticClass()))
 		{
 			OtherActor->Destroy();
+			if (--CollectiblesToEat == 0)
+				GameMode->SetCurrentState(EGameState::EWin);
 		}
 	}
 }

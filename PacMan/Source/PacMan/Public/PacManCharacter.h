@@ -32,11 +32,18 @@ public:
 	
 	void MoveXAxis(float AxisValue);
 	void MoveYAxis(float AxisValue);
-	void MyNewGame();
-	void MyPause();
-	void MyRestart();
+	void NewGame();
+	void PauseGame();
+	void RestartGame();
+	void Kill();
 	
+public:
+	UPROPERTY(EditAnywhere)
+	uint8 Lives = 3;
 
+	// Total collectibles in order to win
+	uint8 CollectiblesToEat = 0;
+	FVector StartPoint;
 
 private:
 	UFUNCTION()
