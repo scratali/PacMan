@@ -36,13 +36,20 @@ public:
 	UPROPERTY(EditAnywhere, Category = Body)
 	UMaterialInterface* VulnerableMaterial;
 
+
+	// When player eat a super collectible, set all the enemies vulnerable for a certain period of time
 	void SetVulnerable();
+
+	// When time ends, clear it, make enemy invulnerable again and restore enemy's material and speed
 	void SetInvulnerable();
-	void SetMove(bool MoveIt);
+
+	void SetMove(bool bMoveIt);
 	void Kill();
+
+	// Enemy re-arm; set invulnerable and restore its original speed
 	void Rearm();
 
-	bool IsDead;
+	bool bIsDead;
 
 private:
 	UFUNCTION()

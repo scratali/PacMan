@@ -4,6 +4,10 @@
 #include <ConstructorHelpers.h>
 #include <Components/CapsuleComponent.h>
 #include <Components/StaticMeshComponent.h>
+#include "AIEnemy.h"
+#include <GameFramework/CharacterMovementComponent.h>
+#include <TimerManager.h>
+#include "PacManCharacter.h"
 
 
 // Sets default values
@@ -23,12 +27,20 @@ AEnemyCharacter::AEnemyCharacter()
 		EnemyBody->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepWorldTransform);
 	}
 
+	static ConstructorHelpers::FObjectFinder<UMaterialInterface> VulnerableMat(TEXT("Material'/Game/Materials/M_Enemy_Vulnerable.M_Enemy_Vulnerable'"));
+	if (VulnerableMat.Succeeded()) {
+		VulnerableMaterial = VulnerableMat.Object;
+		UE_LOG(LogTemp, Warning, TEXT("Vulnerable Material found. %s"), *VulnerableMaterial->GetName());
+	}
+
 	static ConstructorHelpers::FObjectFinder<UMaterialInterface> DefaultMat(TEXT("MaterialInstanceConstant'/Game/Materials/M_PacMan_Blue.M_PacMan_Blue'"));
 	if (DefaultMat.Succeeded()) {
 		DefaultMaterial = DefaultMat.Object;
 		UE_LOG(LogTemp, Warning, TEXT("Default Material found. %s"), *DefaultMaterial->GetName());
 	}
 	EnemyBody->SetMaterial(0, DefaultMaterial);
+
+	AIControllerClass = AAIEnemy::StaticClass();
 }
 
 // Called when the game starts or when spawned
@@ -36,7 +48,9 @@ void AEnemyCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	//EnemyBody->SetMaterial(0, DefaultMaterial);
+	DefaultMaterial = EnemyBody->GetMaterial(0);
+
+	GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &AEnemyCharacter::MyOnCollision);
 }
 
 // Called every frame
@@ -54,8 +68,71 @@ void AEnemyCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 }
 
 
-void AEnemyCharacter::MyOnCollision(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult &SweepResult)
+void AEnemyCharacter::SetVulnerable()
 {
+	// set/reset timer
+	GetWorldTimerManager().SetTimer(TimerVulnerable, this, &AEnemyCharacter::SetInvulnerable, 10.0f, false);
 
+	if (bIsVulnerable)	return;
+	
+	EnemyBody->SetMaterial(0, VulnerableMaterial);
+
+	// make the enemy run slower
+	GetCharacterMovement()->MaxWalkSpeed = 50.0f;
+}
+
+void AEnemyCharacter::SetInvulnerable()
+{
+	GetWorldTimerManager().ClearTimer(TimerVulnerable);
+	bIsVulnerable = false;
+	EnemyBody->SetMaterial(0, DefaultMaterial);
+	GetCharacterMovement()->MaxWalkSpeed = 150.0f;
+}
+
+void AEnemyCharacter::SetMove(bool bMoveIt)
+{
+	// need to cast the AI class and call two public functions from	here
+		// if false move to its location in order to stop movements
+	AAIEnemy* AI = Cast<AAIEnemy>(AIControllerClass);
+	if (!AI)	return;
+
+	if (bMoveIt)
+		AI->SearchNewPoint();
+	else
+		AI->StopMove();
+}
+
+void AEnemyCharacter::Kill()
+{
+	// don't kill twice
+	if (bIsDead)	return;
+
+	// if it's not dead, kill and modify its speed. the enemy will go fast at his house in order to respawn
+	bIsDead = true;
+	GetCharacterMovement()->MaxWalkSpeed = 300.0f;
+}
+
+void AEnemyCharacter::Rearm()
+{
+	bIsDead = false;
+	GetCharacterMovement()->MaxWalkSpeed = 150.0f;
+
+	if (bIsVulnerable)
+		SetInvulnerable();
+}
+
+void AEnemyCharacter::MyOnCollision(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
+	bool bFromSweep, const FHitResult &SweepResult)
+{
+	if (OtherActor->IsA(APacManCharacter::StaticClass()))
+	{
+		if (bIsVulnerable)
+			Kill();
+		else {
+			APacManCharacter* PacMan = Cast<APacManCharacter>(OtherActor);
+			if (PacMan)
+				PacMan->Kill();
+		}
+	}
 }
 
