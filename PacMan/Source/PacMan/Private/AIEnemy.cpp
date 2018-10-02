@@ -34,13 +34,26 @@ void AAIEnemy::OnMoveCompleted(FAIRequestID RequestID, const FPathFollowingResul
 //     when found, we simply call the GetRandomPointInRadius function from the NavMesh
 void AAIEnemy::SearchNewPoint()
 {
-	UNavigationSystemV1* NavMesh = UNavigationSystemV1::GetCurrent(this);
+	UE_LOG(LogTemp, Warning, TEXT("%s->SearchNewPoint"), *GetName());
+	//UNavigationSystemV1* NavMesh = UNavigationSystemV1::GetCurrent(this);
+	UNavigationSystemV1* NavMesh = FNavigationSystem::GetCurrent<UNavigationSystemV1>(GetWorld());
+	//UNavigationSystemV1* NavMesh = UNavigationSystemV1::GetCurrent(GetWorld());
 	if (NavMesh) {
+		UE_LOG(LogTemp, Warning, TEXT("\tNavMesh true!"));
 		const float fSearchRadius = 10000.0f;
 		FNavLocation RandomPt;
 		bool bFound = NavMesh->GetRandomReachablePointInRadius(Bot->GetActorLocation(), fSearchRadius, RandomPt);
-		if (bFound)
+
+		FVector RandLoc;
+		//bFound = NavMesh->K2_GetRandomReachablePointInRadius(GetWorld(), Bot->GetActorLocation(), RandLoc, fSearchRadius);
+
+		RandLoc = RandomPt.Location;
+		UE_LOG(LogTemp, Warning, TEXT("\tBot: %s - GetRandomPoint: %s, %.2f, => %d, %s"), *Bot->GetName(), *Bot->GetActorLocation().ToString(),
+			fSearchRadius, bFound, *RandLoc.ToString());
+
+		if (bFound) {
 			MoveToLocation(RandomPt.Location);
+		}
 	}
 }
 

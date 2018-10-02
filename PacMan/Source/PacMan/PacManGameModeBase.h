@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
+#include "EnemyCharacter.h"
 #include "PacManGameModeBase.generated.h"
 
 
@@ -25,12 +26,22 @@ class PACMAN_API APacManGameModeBase : public AGameModeBase
 {
 	GENERATED_BODY()
 	
-	
 public:
+	APacManGameModeBase();
+
+protected:
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
+
+public:
+
 	EGameState GetCurrentState() const;
 	void SetCurrentState(EGameState GameState);
+	void SetEnemyVulnerable();
 
 private:
 	EGameState CurrentState;
 	
+	TArray<AEnemyCharacter*> Enemies;
+	APlayerController* PlayerController;
 };

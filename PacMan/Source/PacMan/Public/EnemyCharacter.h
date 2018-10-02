@@ -27,7 +27,7 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 
-	UPROPERTY(EditDefaultsOnly, Category = Body)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Body)
 		UStaticMeshComponent* EnemyBody;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Body)

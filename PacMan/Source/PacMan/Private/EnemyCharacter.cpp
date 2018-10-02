@@ -22,6 +22,7 @@ AEnemyCharacter::AEnemyCharacter()
 
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> CylinderObj(TEXT("StaticMesh'/Engine/BasicShapes/Cylinder.Cylinder'"));
 	EnemyBody = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("EnemyBody"));
+	EnemyBody->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	if (CylinderObj.Succeeded())
 		EnemyBody->SetStaticMesh(CylinderObj.Object);
 
@@ -101,8 +102,14 @@ void AEnemyCharacter::SetMove(bool bMoveIt)
 {
 	// need to cast the AI class and call two public functions from	here
 		// if false move to its location in order to stop movements
-	AAIEnemy* AI = Cast<AAIEnemy>(AIControllerClass);
-	if (!AI)	return;
+	//AAIEnemy* AI = Cast<AAIEnemy>(AIControllerClass);
+	AAIEnemy* AI = Cast<AAIEnemy>(GetController());
+
+	UE_LOG(LogTemp, Warning, TEXT("Enemy %s -> AI is class %s - AI %d - %s"), *GetName(), *AIControllerClass->GetName(), AI, *GetController()->GetName());
+
+	if (AI == nullptr)	return;
+
+	UE_LOG(LogTemp, Warning, TEXT("Enemy %s -> AI is %d"), *GetName(), bMoveIt);
 
 	if (bMoveIt)
 		AI->SearchNewPoint();
