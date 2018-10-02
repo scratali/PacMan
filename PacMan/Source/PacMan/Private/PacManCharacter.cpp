@@ -5,6 +5,7 @@
 #include <Components/CapsuleComponent.h>
 #include "Collectible.h"
 #include <EngineUtils.h>
+#include <GameFramework/CharacterMovementComponent.h>
 
 
 // Sets default values
@@ -12,6 +13,7 @@ APacManCharacter::APacManCharacter()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+	GetCharacterMovement() ->bOrientRotationToMovement = true;
 	//SetActorEnableCollision(true);
 
 }
@@ -103,7 +105,13 @@ void APacManCharacter::MyOnCollision(UPrimitiveComponent* OverlappedComponent, A
 	{
 		if (OtherActor->IsA(ACollectible::StaticClass()))
 		{
+			ACollectible* CollectibleItem = Cast<ACollectible>(OtherActor);
+			if (CollectibleItem && CollectibleItem->bIsSuperCollectible) {
+				GameMode->SetEnemyVulnerable();
+			}
+
 			OtherActor->Destroy();
+
 			if (--CollectiblesToEat == 0)
 				GameMode->SetCurrentState(EGameState::EWin);
 		}

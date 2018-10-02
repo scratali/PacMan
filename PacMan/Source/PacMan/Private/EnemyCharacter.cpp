@@ -19,6 +19,7 @@ AEnemyCharacter::AEnemyCharacter()
 
 	GetCapsuleComponent()->SetCapsuleRadius(40.0f);
 	GetCapsuleComponent()->SetCapsuleHalfHeight(50.0f);
+	GetCharacterMovement()->MaxWalkSpeed = 150.0f;
 
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> CylinderObj(TEXT("StaticMesh'/Engine/BasicShapes/Cylinder.Cylinder'"));
 	EnemyBody = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("EnemyBody"));
@@ -80,14 +81,20 @@ void AEnemyCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 void AEnemyCharacter::SetVulnerable()
 {
 	// set/reset timer
-	GetWorldTimerManager().SetTimer(TimerVulnerable, this, &AEnemyCharacter::SetInvulnerable, 10.0f, false);
+	GetWorldTimerManager().SetTimer(TimerVulnerable, this, &AEnemyCharacter::SetInvulnerable, 15.0f, false);
 
 	if (bIsVulnerable)	return;
 	
+	bIsVulnerable = true;
+
 	EnemyBody->SetMaterial(0, VulnerableMaterial);
 
 	// make the enemy run slower
-	GetCharacterMovement()->MaxWalkSpeed = 50.0f;
+	GetCharacterMovement()->MaxWalkSpeed = 100.0f;
+
+	AAIEnemy* AI = Cast<AAIEnemy>(GetController());
+	if (AI)
+		AI->GoHome();
 }
 
 void AEnemyCharacter::SetInvulnerable()
@@ -96,6 +103,7 @@ void AEnemyCharacter::SetInvulnerable()
 	bIsVulnerable = false;
 	EnemyBody->SetMaterial(0, DefaultMaterial);
 	GetCharacterMovement()->MaxWalkSpeed = 150.0f;
+	SetMove(true);
 }
 
 void AEnemyCharacter::SetMove(bool bMoveIt)
@@ -105,11 +113,7 @@ void AEnemyCharacter::SetMove(bool bMoveIt)
 	//AAIEnemy* AI = Cast<AAIEnemy>(AIControllerClass);
 	AAIEnemy* AI = Cast<AAIEnemy>(GetController());
 
-	UE_LOG(LogTemp, Warning, TEXT("Enemy %s -> AI is class %s - AI %d - %s"), *GetName(), *AIControllerClass->GetName(), AI, *GetController()->GetName());
-
 	if (AI == nullptr)	return;
-
-	UE_LOG(LogTemp, Warning, TEXT("Enemy %s -> AI is %d"), *GetName(), bMoveIt);
 
 	if (bMoveIt)
 		AI->SearchNewPoint();
@@ -125,6 +129,10 @@ void AEnemyCharacter::Kill()
 	// if it's not dead, kill and modify its speed. the enemy will go fast at his house in order to respawn
 	bIsDead = true;
 	GetCharacterMovement()->MaxWalkSpeed = 300.0f;
+
+	AAIEnemy* AI = Cast<AAIEnemy>(GetController());
+	if (AI)
+		AI->GoHome();
 }
 
 void AEnemyCharacter::Rearm()
