@@ -27,14 +27,15 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 
-	UPROPERTY(EditAnywhere, Category = Body)
+	UPROPERTY(EditDefaultsOnly, Category = Body)
 		UStaticMeshComponent* EnemyBody;
 
-	UPROPERTY(EditAnywhere, Category = Body)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Body)
 		UMaterialInterface* DefaultMaterial;
 
-	UPROPERTY(EditAnywhere, Category = Body)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Body)
 		UMaterialInterface* VulnerableMaterial;
+
 
 
 	// When player eat a super collectible, set all the enemies vulnerable for a certain period of time

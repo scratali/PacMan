@@ -8,6 +8,7 @@
 #include <GameFramework/CharacterMovementComponent.h>
 #include <TimerManager.h>
 #include "PacManCharacter.h"
+#include <Materials/MaterialInstanceDynamic.h>
 
 
 // Sets default values
@@ -20,12 +21,12 @@ AEnemyCharacter::AEnemyCharacter()
 	GetCapsuleComponent()->SetCapsuleHalfHeight(50.0f);
 
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> CylinderObj(TEXT("StaticMesh'/Engine/BasicShapes/Cylinder.Cylinder'"));
-	EnemyBody = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Body"));
-	if (EnemyBody != nullptr && CylinderObj.Succeeded()) {
+	EnemyBody = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("EnemyBody"));
+	if (CylinderObj.Succeeded())
 		EnemyBody->SetStaticMesh(CylinderObj.Object);
-		EnemyBody->SetRelativeScale3D(FVector(0.7f, 0.7f, 1.0f));
-		EnemyBody->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepWorldTransform);
-	}
+
+	EnemyBody->SetRelativeScale3D(FVector(0.7f, 0.7f, 1.0f));
+	EnemyBody->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepWorldTransform);
 
 	static ConstructorHelpers::FObjectFinder<UMaterialInterface> VulnerableMat(TEXT("Material'/Game/Materials/M_Enemy_Vulnerable.M_Enemy_Vulnerable'"));
 	if (VulnerableMat.Succeeded()) {
@@ -33,12 +34,13 @@ AEnemyCharacter::AEnemyCharacter()
 		UE_LOG(LogTemp, Warning, TEXT("Vulnerable Material found. %s"), *VulnerableMaterial->GetName());
 	}
 
-	static ConstructorHelpers::FObjectFinder<UMaterialInterface> DefaultMat(TEXT("MaterialInstanceConstant'/Game/Materials/M_PacMan_Blue.M_PacMan_Blue'"));
+	/*static ConstructorHelpers::FObjectFinder<UMaterialInterface> DefaultMat(TEXT("MaterialInstanceConstant'/Game/Materials/M_PacMan_Blue.M_PacMan_Blue'"));
 	if (DefaultMat.Succeeded()) {
 		DefaultMaterial = DefaultMat.Object;
 		UE_LOG(LogTemp, Warning, TEXT("Default Material found. %s"), *DefaultMaterial->GetName());
-	}
-	EnemyBody->SetMaterial(0, DefaultMaterial);
+	}*/
+	if(DefaultMaterial != nullptr)
+		EnemyBody->SetMaterial(0, DefaultMaterial);
 
 	AIControllerClass = AAIEnemy::StaticClass();
 }
@@ -48,7 +50,13 @@ void AEnemyCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	//DefaultMaterial = EnemyBody->GetMaterial(0);
+	if (EnemyBody != nullptr) {
+		EnemyBody->SetMaterial(0, DefaultMaterial);
+	}
+	else
+		UE_LOG(LogTemp, Error, TEXT("EnemyBody is null"));
+
+	//EnemyBody->SetMaterial(0, TheMaterial_Dyn);
 
 	GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &AEnemyCharacter::MyOnCollision);
 }
