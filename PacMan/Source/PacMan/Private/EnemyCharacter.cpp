@@ -52,13 +52,14 @@ void AEnemyCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
+	HomeLocation = GetActorLocation();
+
 	if (EnemyBody != nullptr) {
 		EnemyBody->SetMaterial(0, DefaultMaterial);
 	}
 	else
 		UE_LOG(LogTemp, Error, TEXT("EnemyBody is null"));
 
-	//EnemyBody->SetMaterial(0, TheMaterial_Dyn);
 
 	GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &AEnemyCharacter::MyOnCollision);
 }

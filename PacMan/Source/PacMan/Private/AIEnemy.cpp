@@ -3,12 +3,12 @@
 #include "AIEnemy.h"
 #include <TimerManager.h>
 #include <NavigationSystem.h>
+#include <DrawDebugHelpers.h>
 
 
 
 AAIEnemy::AAIEnemy()
 {
-
 }
 
 // When possessed, store its location and start to move around
@@ -17,16 +17,13 @@ void AAIEnemy::Possess(APawn* InPawn)
 	Super::Possess(InPawn);
 
 	Bot = Cast<AEnemyCharacter>(InPawn);
-
-	HomeLocation = Bot->GetActorLocation();
-
 	SearchNewPoint();
 }
 
 
 void AAIEnemy::OnMoveCompleted(FAIRequestID RequestID, const FPathFollowingResult& Result)
 {
-	if (!Bot->bIsDead)
+	if (!Bot->bIsDead && Result.IsSuccess())
 		SearchNewPoint();
 }
 
@@ -34,24 +31,15 @@ void AAIEnemy::OnMoveCompleted(FAIRequestID RequestID, const FPathFollowingResul
 //     when found, we simply call the GetRandomPointInRadius function from the NavMesh
 void AAIEnemy::SearchNewPoint()
 {
-	UE_LOG(LogTemp, Warning, TEXT("%s->SearchNewPoint"), *GetName());
-	//UNavigationSystemV1* NavMesh = UNavigationSystemV1::GetCurrent(this);
-	UNavigationSystemV1* NavMesh = FNavigationSystem::GetCurrent<UNavigationSystemV1>(GetWorld());
+	UNavigationSystemV1* NavMesh = UNavigationSystemV1::GetCurrent(this);
+	//UNavigationSystemV1* NavMesh = FNavigationSystem::GetCurrent<UNavigationSystemV1>(GetWorld());
 	//UNavigationSystemV1* NavMesh = UNavigationSystemV1::GetCurrent(GetWorld());
 	if (NavMesh) {
-		UE_LOG(LogTemp, Warning, TEXT("\tNavMesh true!"));
 		const float fSearchRadius = 10000.0f;
 		FNavLocation RandomPt;
 		bool bFound = NavMesh->GetRandomReachablePointInRadius(Bot->GetActorLocation(), fSearchRadius, RandomPt);
-
-		FVector RandLoc;
-		//bFound = NavMesh->K2_GetRandomReachablePointInRadius(GetWorld(), Bot->GetActorLocation(), RandLoc, fSearchRadius);
-
-		RandLoc = RandomPt.Location;
-		UE_LOG(LogTemp, Warning, TEXT("\tBot: %s - GetRandomPoint: %s, %.2f, => %d, %s"), *Bot->GetName(), *Bot->GetActorLocation().ToString(),
-			fSearchRadius, bFound, *RandLoc.ToString());
-
 		if (bFound) {
+			DrawDebugPoint(GetWorld(), RandomPt.Location, 10, FColor(255, 0, 0), true, 10);
 			MoveToLocation(RandomPt.Location);
 		}
 	}
@@ -60,7 +48,7 @@ void AAIEnemy::SearchNewPoint()
 // Simply return to home location and start a timer for death
 void AAIEnemy::GoHome()
 {
-	MoveToLocation(HomeLocation);
+	MoveToLocation(Bot->GetHomeLocation());
 	GetWorldTimerManager().SetTimer(TimerDead, this, &AAIEnemy::Rearm, 5.0f, false);
 }
 

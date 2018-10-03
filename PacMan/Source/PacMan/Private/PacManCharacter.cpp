@@ -26,7 +26,7 @@ void APacManCharacter::BeginPlay()
 	GameMode = Cast<APacManGameModeBase>(UGameplayStatics::GetGameMode(this));
 	GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &APacManCharacter::MyOnCollision);
 
-	GameMode->SetCurrentState(EGameState::EPlaying);
+	//GameMode->SetCurrentState(EGameState::EPlaying);
 
 	StartPoint = GetActorLocation();
 
@@ -34,8 +34,6 @@ void APacManCharacter::BeginPlay()
 	for (TActorIterator<ACollectible> CollectibleItr(GetWorld()); CollectibleItr; ++CollectibleItr) {
 		CollectiblesToEat++;
 	}
-
-	UE_LOG(LogTemp, Warning, TEXT("Collectibles to eat: %d - Lives: %d"), CollectiblesToEat, Lives);
 }
 
 // Called every frame
@@ -60,42 +58,60 @@ void APacManCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 void APacManCharacter::MoveXAxis(float AxisValue)
 {
 	CurrentVelocity.X = AxisValue;
-	AddMovementInput(CurrentVelocity);
+	if(!bGamePaused)
+		AddMovementInput(CurrentVelocity);
 
 }
 
 void APacManCharacter::MoveYAxis(float AxisValue)
 {
 	CurrentVelocity.Y = AxisValue;
-	AddMovementInput(CurrentVelocity);
+	if(!bGamePaused)
+		AddMovementInput(CurrentVelocity);
 
 }
 
 void APacManCharacter::NewGame()
 {
-	if (GameMode->GetCurrentState() == EGameState::EMenu)
+	if (GameMode->GetCurrentState() == EGameState::EMenu) {
 		GameMode->SetCurrentState(EGameState::EPlaying);
+		bGamePaused = false;
+	}
 }
 
 void APacManCharacter::PauseGame()
 {
-	if (GameMode->GetCurrentState() == EGameState::EPlaying)
+	if (GameMode->GetCurrentState() == EGameState::EPlaying) {
 		GameMode->SetCurrentState(EGameState::EPause);
-	else if (GameMode->GetCurrentState() == EGameState::EPause)
+		bGamePaused = true;
+	}
+	else if (GameMode->GetCurrentState() == EGameState::EPause) {
 		GameMode->SetCurrentState(EGameState::EPlaying);
+		bGamePaused = false;
+	}
 }
 
 void APacManCharacter::RestartGame()
 {
 	GetWorld()->GetFirstPlayerController()->ConsoleCommand(TEXT("RestartLevel"));
+	bGamePaused = false;
 }
 
 void APacManCharacter::Kill()
 {
-	if (--Lives == 0)
+	if (bGamePaused)
+		return;
+
+	bGamePaused = true;
+	if (Lives == 0) {
 		GameMode->SetCurrentState(EGameState::EGameOver);
-	else
+	}
+	else {
+		GameMode->SetCurrentState(EGameState::EPause);
 		SetActorLocation(StartPoint);
+		GameMode->ResetGame();
+		Lives--;
+	}
 }
 
 void APacManCharacter::MyOnCollision(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
@@ -112,8 +128,10 @@ void APacManCharacter::MyOnCollision(UPrimitiveComponent* OverlappedComponent, A
 
 			OtherActor->Destroy();
 
-			if (--CollectiblesToEat == 0)
+			if (--CollectiblesToEat == 0) {
 				GameMode->SetCurrentState(EGameState::EWin);
+				bGamePaused = true;
+			}
 		}
 	}
 }

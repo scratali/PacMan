@@ -52,4 +52,6 @@ private:
 
 	FVector CurrentVelocity;
 	APacManGameModeBase* GameMode;
+	bool bGamePaused = true;
+	//bool bIsDead = false;
 };

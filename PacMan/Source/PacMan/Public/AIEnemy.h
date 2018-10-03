@@ -30,6 +30,5 @@ public:
 
 private:
 	AEnemyCharacter* Bot;
-	FVector HomeLocation;
 	FTimerHandle TimerDead;
 };

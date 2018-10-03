@@ -39,6 +39,9 @@ public:
 	void SetCurrentState(EGameState GameState);
 	void SetEnemyVulnerable();
 
+	// Reset the game after Pacman is dead
+	void ResetGame();
+
 private:
 	EGameState CurrentState;
 	

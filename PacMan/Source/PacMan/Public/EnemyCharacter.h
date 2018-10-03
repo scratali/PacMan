@@ -49,6 +49,7 @@ public:
 
 	// Enemy re-arm; set invulnerable and restore its original speed
 	void Rearm();
+	FVector GetHomeLocation() const { return HomeLocation; }
 
 	bool bIsDead = false;
 
@@ -59,4 +60,5 @@ private:
 
 	bool bIsVulnerable = false;
 	FTimerHandle TimerVulnerable;
+	FVector HomeLocation;
 };

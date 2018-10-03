@@ -3,6 +3,7 @@
 #include "PacManGameModeBase.h"
 #include <ConstructorHelpers.h>
 #include <EngineUtils.h>
+#include "PacManHUD.h"
 
 
 APacManGameModeBase::APacManGameModeBase()
@@ -13,6 +14,7 @@ APacManGameModeBase::APacManGameModeBase()
 	{
 		DefaultPawnClass = PlayerPawnOb.Class;
 	}
+	HUDClass = APacManHUD::StaticClass();
 }
 
 void APacManGameModeBase::BeginPlay()
@@ -34,7 +36,7 @@ void APacManGameModeBase::BeginPlay()
 
 	UE_LOG(LogTemp, Warning, TEXT("Number of enemies found: %d"), Enemies.Num());
 
-	SetCurrentState(EGameState::EPlaying);
+	//SetCurrentState(EGameState::EPlaying);
 
 }
 
@@ -80,4 +82,12 @@ void APacManGameModeBase::SetEnemyVulnerable()
 	}
 }
 
+void APacManGameModeBase::ResetGame()
+{
+	for (auto EnemyIter(Enemies.CreateIterator()); EnemyIter; EnemyIter++)
+	{
+		(*EnemyIter)->SetMove(false);
+		(*EnemyIter)->SetActorLocation((*EnemyIter)->GetHomeLocation());
+	}
+}
 
