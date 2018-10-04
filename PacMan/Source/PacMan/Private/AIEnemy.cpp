@@ -4,6 +4,7 @@
 #include <TimerManager.h>
 #include <NavigationSystem.h>
 #include <DrawDebugHelpers.h>
+#include <Kismet/GameplayStatics.h>
 
 
 
@@ -23,7 +24,7 @@ void AAIEnemy::Possess(APawn* InPawn)
 
 void AAIEnemy::OnMoveCompleted(FAIRequestID RequestID, const FPathFollowingResult& Result)
 {
-	if (!Bot->bIsDead && Result.IsSuccess())
+	if (!Bot->bIsDead && bCanMove)
 		SearchNewPoint();
 }
 
@@ -31,16 +32,31 @@ void AAIEnemy::OnMoveCompleted(FAIRequestID RequestID, const FPathFollowingResul
 //     when found, we simply call the GetRandomPointInRadius function from the NavMesh
 void AAIEnemy::SearchNewPoint()
 {
+	bCanMove = true;
+
+	auto PlayerPawn = UGameplayStatics::GetPlayerPawn(this, 0);
+	FVector BotLocation = Bot->GetActorLocation();
+	FVector PlayerLocation;
+	if(PlayerPawn)
+		PlayerLocation = PlayerPawn->GetActorLocation();
+	bool bGetToPlayer = false;
+	if (PlayerPawn && (FVector::Dist(PlayerLocation, BotLocation) < 400.0))
+		bGetToPlayer = true;
+
 	UNavigationSystemV1* NavMesh = UNavigationSystemV1::GetCurrent(this);
 	//UNavigationSystemV1* NavMesh = FNavigationSystem::GetCurrent<UNavigationSystemV1>(GetWorld());
 	//UNavigationSystemV1* NavMesh = UNavigationSystemV1::GetCurrent(GetWorld());
 	if (NavMesh) {
 		const float fSearchRadius = 10000.0f;
 		FNavLocation RandomPt;
-		bool bFound = NavMesh->GetRandomReachablePointInRadius(Bot->GetActorLocation(), fSearchRadius, RandomPt);
-		if (bFound) {
-			DrawDebugPoint(GetWorld(), RandomPt.Location, 10, FColor(255, 0, 0), true, 10);
-			MoveToLocation(RandomPt.Location);
+		if (bGetToPlayer) {
+			MoveToLocation(PlayerLocation);
+		}
+		else {
+			bool bFound = NavMesh->GetRandomReachablePointInRadius(BotLocation, fSearchRadius, RandomPt);
+			if (bFound) {
+				MoveToLocation(RandomPt.Location);
+			}
 		}
 	}
 }
@@ -48,6 +64,8 @@ void AAIEnemy::SearchNewPoint()
 // Simply return to home location and start a timer for death
 void AAIEnemy::GoHome()
 {
+	bCanMove = true;
+
 	MoveToLocation(Bot->GetHomeLocation());
 	GetWorldTimerManager().SetTimer(TimerDead, this, &AAIEnemy::Rearm, 5.0f, false);
 }
@@ -61,6 +79,7 @@ void AAIEnemy::Rearm()
 
 void AAIEnemy::StopMove()
 {
+	bCanMove = false;
 	StopMovement();
 }
 

@@ -31,4 +31,5 @@ public:
 private:
 	AEnemyCharacter* Bot;
 	FTimerHandle TimerDead;
+	bool bCanMove = false;
 };
